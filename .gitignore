@@ -1,0 +1,7 @@
+# Build output
+/sorahost
+/sorahost.exe
+/dist/
+
+# Local scratch
+*.tgz
