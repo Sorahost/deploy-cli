@@ -1,2 +1,0 @@
-deploy.bat text eol=crlf
-deploy.sh text eol=lf
