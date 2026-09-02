@@ -1,7 +1,4 @@
-# Build output
-/sorahost
-/sorahost.exe
-/dist/
+node_modules/
 
 # Local scratch
 *.tgz

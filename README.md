@@ -1,11 +1,29 @@
-# SORAHOST deploy-cli
+# sorahost-cli
 
-SORAHOST（PteWorker）へプロジェクトを公開するためのデプロイスクリプトです。
+SORAHOST（PteWorker）へプロジェクトを公開するためのCLIツールです。
 
-- Windows: `deploy.bat`
-- macOS / Linux: `deploy.sh`
+```sh
+npm install -g sorahost-cli
+cd my-project
+sorahost deploy
+```
 
-難しいインストール作業はありません。プロジェクトへスクリプトを置いて実行し、PteWorkerのコンソールに表示された「エンドポイント」と「デプロイトークン」を貼り付けます。
+## インストール
+
+Node.js 18 以降が必要です。
+
+```sh
+npm install -g sorahost-cli
+```
+
+`npx` で都度実行することもできます。
+
+```sh
+npx sorahost-cli deploy
+```
+
+> このリポジトリを clone して試す場合は、リポジトリ内で `npm install` のあと
+> `npm link`（`sorahost` コマンドを作る）または `node bin/sorahost.js deploy` で実行します。
 
 ## はじめてのデプロイ
 
@@ -18,34 +36,31 @@ PterodactylでPteWorkerを起動すると、コンソールに次の2つが表�
 
 トークンの全文が表示されるのは発行時の一度だけです。第三者に見せず、安全な場所へ保存してください。保存し忘れた場合は、PteWorkerのコンソールで `token rotate` を実行すると再発行できます。
 
-### 2. スクリプトをプロジェクトへ置く
+### 2. `sorahost.json`を用意する
 
-#### Windows
+`sorahost.json` は「どのフォルダーやファイルを公開するか」をPteWorkerへ伝える設定ファイルです。プロジェクトの一番上に作成します。
 
-[`deploy.bat`](deploy.bat) をダウンロードし、デプロイしたいプロジェクトの一番上のフォルダーへ置きます。
-
-```text
-my-project/
-├─ deploy.bat
-├─ sorahost.json
-├─ package.json
-└─ dist/
-```
-
-#### macOS / Linux
-
-プロジェクトの一番上のフォルダーで実行します。
+`sorahost init` を実行すると、`package.json` からフレームワーク（Vite / Next.js / Astro / Hono など）を推測し、対話で作成できます。
 
 ```sh
-curl -fsSLO https://raw.githubusercontent.com/Sorahost/deploy-cli/main/deploy.sh
-chmod +x deploy.sh
+sorahost init
 ```
 
-### 3. `sorahost.json`を用意する
+```text
+  ◆ sorahost init
 
-`sorahost.json`は「どのフォルダーやファイルを公開するか」をPteWorkerへ伝える設定ファイルです。プロジェクトの一番上に作成します。
+  プロジェクト   my-app
+  検出          Vite
+  推奨設定       mode: static · dir: dist
 
-一般的な静的サイト（Vite、React、Vueなど）の例です。
+  ? デプロイモード ❯ static
+  ? 公開するフォルダー (dist) ❯
+  ? SPA ルーティングを使う（未知のパスを index.html に返す） [Y/n] ❯
+
+  ✓ sorahost.json を作成しました
+```
+
+手書きする場合の例です。
 
 ```json
 {
@@ -56,37 +71,139 @@ chmod +x deploy.sh
 }
 ```
 
-`npm run build`などを先に実行し、`dir`で指定したフォルダーが実際に存在することを確認してください。デプロイスクリプト自体は、依存パッケージのインストールやビルドを行いません。
+`npm run build` などを先に実行し、`dir` で指定したフォルダーが実際に存在することを確認してください。このCLIは依存パッケージのインストールやビルドを行いません（`dir` が無い場合は、対話で `npm run build` を実行するか確認します）。
 
-### 4. 実行する
+### 3. 実行する
 
-Windowsは `deploy.bat` をダブルクリックします。コマンドプロンプトから実行しても構いません。
-
-```bat
-deploy.bat
-```
-
-macOS / Linuxはターミナルで実行します。
+プロジェクトの一番上のフォルダーで実行します。
 
 ```sh
-./deploy.sh
+sorahost deploy
 ```
 
 画面上で聞かれたら、手順1のエンドポイントとデプロイトークンを貼り付けます。トークンの入力内容は画面に表示されません。
 
 ```text
-=== SORAHOSTへデプロイ ===
-対象: /path/to/my-project
+  ◆ my-app をデプロイ
 
-エンドポイント: https://example.com/_sorahost/...
-デプロイトークン（入力内容は表示されません）:
+  対象    /path/to/my-app
+  モード   static · dist/  (SPA)
+  前回    3分前 · 成功
 
-[1/3] デプロイするファイルをまとめています...
-[2/3] サーバーへアップロードしています...
-[3/3] 公開が完了しました。
+  ? エンドポイント ❯ https://example.com/_sorahost/…
+  ? デプロイトークン ❯
+  ✓ デプロイトークン ····a1b2
+  ✓ 保存しました /path/to/my-app/.sorahost.json (600)
 
-デプロイ成功！ サイトが新しい内容に切り替わりました。
+  ✓ 42 ファイル · 2.1 MB (圧縮後 480 KB)   1.2s
+  ⠸ アップロード中  ███████████████░░░░░  74%  1.6 MB / 2.1 MB
+
+  ✓ デプロイ成功   ·   4.6s
+
+    サイト    https://example.com/
+    ファイル   42
+    サイズ    2.1 MB
 ```
+
+保存すると、2回目以降は `sorahost deploy` だけでデプロイできます。
+
+## コマンド
+
+```text
+sorahost [deploy] [パス]   プロジェクトをデプロイする（既定コマンド）
+sorahost init    [パス]    sorahost.json を対話で作成する
+sorahost login   [パス]    エンドポイントとトークンを保存する
+sorahost logout  [パス]    保存した認証情報を削除する
+sorahost whoami  [パス]    現在の設定と直近のデプロイを表示する
+sorahost open    [パス]    公開サイトをブラウザーで開く
+```
+
+## オプション
+
+```text
+-y, --yes         確認を省略する（CI 向け）
+    --dry-run     アップロードせず、送信内容とサイズだけ表示する
+    --json        機械可読な JSON で結果を出力する
+    --open        デプロイ成功後にブラウザーで開く
+-q, --quiet       進捗表示を抑える
+    --no-color    色を使わない（NO_COLOR 環境変数にも対応）
+-h, --help        ヘルプを表示する
+-v, --version     バージョンを表示する
+```
+
+パイプ実行・CI（TTY でない）環境では、自動的にアニメーションや色を止めた行ベースの出力になります。
+
+### 別のフォルダーをデプロイする
+
+```sh
+sorahost deploy /path/to/my-project
+```
+
+## 認証情報の保存（毎回入力しない）
+
+エンドポイントとトークンは、次の順で解決されます。
+
+1. 環境変数 `SORAHOST_ENDPOINT` / `SORAHOST_TOKEN`
+2. プロジェクト内の `.sorahost.json`
+3. 画面入力（入力後に `.sorahost.json` への保存を確認します）
+
+`.sorahost.json` はトークンを含むため、パーミッション `600` で保存し、`.gitignore` があれば自動で追記します。直近のデプロイ結果もここに記録され、`sorahost whoami` で確認できます。**絶対にコミットしないでください。**
+
+```jsonc
+// .sorahost.json（自動生成、Git 管理対象外）
+{
+  "endpoint": "https://example.com/_sorahost/...",
+  "token": "your-secret-token",
+  "lastDeployedAt": "2026-09-02T04:08:38.544Z",
+  "lastDeployStatus": "success",
+  "siteUrl": "https://example.com/"
+}
+```
+
+先に保存だけしておくこともできます。
+
+```sh
+sorahost login          # エンドポイントとトークンを入力して保存
+sorahost logout         # 保存した内容を削除
+```
+
+## アップロードサイズと除外設定
+
+PteWorker 側にアップロードサイズの上限があります（既定 256 MB）。この上限は**サーバー（PteWorker）側の設定**で、CLI からは変更できません。上限を引き上げたい場合は PteWorker 側で設定してください。CLI 側では、送信前にサイズを表示し、上限を超えていればアップロードせずに中止します。`sorahost deploy --dry-run` で送信内容とサイズだけ確認できます。
+
+不要なファイルを含めないことで、ほとんどの場合は上限に達しません。
+
+- **`include`（推奨・どの mode でも有効）**: `sorahost.json` に送信するパスを列挙すると、それ以外は一切送りません。
+
+  ```json
+  {
+    "mode": "node",
+    "start": "node dist/standalone/server.js",
+    "include": ["dist/standalone"]
+  }
+  ```
+
+- **`mode` による自動絞り込み**（`include` 未指定時）
+  - `"static"`: `sorahost.json` と `dir` で指定したフォルダーだけを送信します。
+  - `"worker"`: `sorahost.json` と `entry` のファイルだけを送信します。
+  - `"node"` など: プロジェクト全体を送信します（`include` で絞るのが安全です）。
+- **`.sorahostignore`**: `.gitignore` と同じ書式で、追加の除外パターンを書けます。
+
+```gitignore
+# .sorahostignore の例
+/node_modules      # 先頭の / でリポジトリ直下のみ。ネストした node_modules は残る
+/.next
+/.cache
+*.log
+/coverage
+```
+
+> **注意**: `node_modules`（先頭 `/` なし）と書くと、`dist/standalone/node_modules` のような
+> **アプリの実行に必要なネストした node_modules も除外されます**。`node` アプリを
+> `include` で送るときは `.sorahostignore` は基本的に不要です（`include` 外は元々送られません）。
+> CLI は「node アプリなのに node_modules が1つも入っていない」場合に警告します。
+
+- サーバー側の上限を変更した場合は、環境変数 `SORAHOST_MAX_UPLOAD_BYTES`（バイト数）で CLI の事前チェックも合わせられます。
 
 ## `sorahost.json`の例
 
@@ -132,25 +249,9 @@ PteWorker上でNode.jsプロセスを起動する場合です。実行に必要�
 }
 ```
 
-## 別のフォルダーをデプロイする
-
-スクリプトの引数にプロジェクトのパスを指定できます。
-
-Windows:
-
-```bat
-deploy.bat C:\path\to\my-project
-```
-
-macOS / Linux:
-
-```sh
-./deploy.sh /path/to/my-project
-```
-
 ## CIや自動デプロイで使う
 
-対話入力の代わりに、次の環境変数を設定できます。
+対話入力の代わりに環境変数を設定し、`--yes` を付けます。`--json` で結果を機械可読に受け取れます。
 
 | 環境変数 | 内容 |
 | --- | --- |
@@ -160,48 +261,59 @@ macOS / Linux:
 トークンはリポジトリへ直接書かず、利用しているCIサービスのSecretsへ登録してください。
 
 ```sh
+npm install -g sorahost-cli
+
 SORAHOST_ENDPOINT="https://example.com/_sorahost/..." \
 SORAHOST_TOKEN="your-secret-token" \
-./deploy.sh
+sorahost deploy --yes --json
 ```
+
+`--yes` 実行時は、認証情報と `sorahost.json` が揃っていない場合はエラーで停止します（対話プロンプトは出ません）。
 
 ## アップロードされないファイル
 
-認証情報や開発用ファイルの誤送信を防ぐため、次のファイルは自動的に除外されます。
+認証情報や開発用ファイルの誤送信を防ぐため、次のファイルは常に除外されます。
 
 - `.git/`
 - `.env`、`.env.*`
 - `.npmrc`
 - `.netrc`
 - `.DS_Store`
+- `.sorahost.json`（保存した認証情報）
 
-上記以外のファイルは原則としてArtifactへ含まれます。秘密鍵、バックアップ、ローカルデータベースなどをプロジェクト内へ置いている場合は、実行前に取り除いてください。
+さらに `mode` による自動絞り込みと `.sorahostignore` が適用されます（「アップロードサイズと除外設定」を参照）。上記以外のファイルは原則としてArtifactへ含まれます。秘密鍵、バックアップ、ローカルデータベースなどをプロジェクト内へ置いている場合は、実行前に取り除いてください。
 
 ## よくあるエラー
 
+CLI は失敗時に「何が起きたか / なぜか / どうすればよいか」を表示します。代表的なもの:
+
 ### `sorahost.json が見つかりません`
 
-スクリプトと同じフォルダーへ `sorahost.json` を作成してください。別のフォルダーをデプロイする場合は、そのパスを引数に指定します。
+`sorahost init` で作成できます。別のフォルダーをデプロイする場合は、そのパスを引数に指定します。
 
-### `PteWorkerへ接続できませんでした`
+### `サーバーに接続を拒否されました` / `サーバーが見つかりません`
 
 - PteWorkerが起動しているか
 - エンドポイントを省略せず最後までコピーしたか
 - Pterodactylの割り当てポートへ外部から接続できるか
 
-を確認してください。
+を確認してください。PteWorkerのコンソールで `url` を実行すると、正しいエンドポイントを再表示できます。
 
-### `HTTP 401` / `invalid deploy token`
+### `デプロイトークンが受け付けられませんでした`（HTTP 401 / 403）
 
-トークンが一致していません。PteWorkerのコンソールで `token rotate` を実行し、新しく表示されたトークンでもう一度試してください。
+トークンが一致していません。PteWorkerのコンソールで `token rotate` を実行し、`sorahost login` で新しいトークンを設定し直してください。
 
-### `HTTP 404`
+### `エンドポイントが見つかりませんでした`（HTTP 404）
 
-エンドポイントが古い可能性があります。PteWorkerのコンソールで `url` を実行し、表示されたURLを使用してください。
+エンドポイントが古い可能性があります。PteWorkerのコンソールで `url` を実行し、表示されたURLで `sorahost login` をやり直してください。
+
+### `アップロードサイズが上限を超えています`
+
+「アップロードサイズと除外設定」を参照し、`sorahost.json` の `include` で送るフォルダーを限定してください。上限そのものを変更するには PteWorker 側の設定が必要です。
 
 ### デプロイ後にアプリが起動しない
 
-- `sorahost.json`の `mode`、`dir`、`entry`、`start` が正しいか
+- `sorahost.json` の `mode`、`dir`、`entry`、`start` が正しいか
 - ビルド結果が指定した場所に存在するか
 - Node.jsアプリの実行に必要な依存パッケージが含まれているか
 
@@ -212,12 +324,7 @@ SORAHOST_TOKEN="your-secret-token" \
 - デプロイトークンはパスワードと同じように扱ってください。
 - トークンをGitへコミットしたり、チャットやスクリーンショットで共有したりしないでください。
 - 漏えいした可能性がある場合は、PteWorkerのコンソールで `token rotate` を実行してください。
-- スクリプトはアップロードしたArtifactのSHA-256を送信し、PteWorker側で破損や改ざんを検出します。
-
-## 必要なコマンド
-
-- Windows 10以降: `curl.exe`、`tar.exe`、`certutil.exe`、Windows PowerShell
-- macOS / Linux: `curl`、`tar`、`sha256sum`または`shasum`
+- CLIはアップロードしたArtifactのSHA-256を送信し、PteWorker側で破損や改ざんを検出します。
 
 ## ライセンス
 

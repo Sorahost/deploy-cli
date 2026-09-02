@@ -1,0 +1,39 @@
+{
+  "name": "sorahost-cli",
+  "version": "1.3.1",
+  "description": "SORAHOST（PteWorker）へプロジェクトを公開するCLIツール",
+  "keywords": [
+    "sorahost",
+    "pteworker",
+    "deploy",
+    "cli"
+  ],
+  "homepage": "https://github.com/Sorahost/deploy-cli#readme",
+  "bugs": {
+    "url": "https://github.com/Sorahost/deploy-cli/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Sorahost/deploy-cli.git"
+  },
+  "license": "MIT",
+  "type": "commonjs",
+  "bin": {
+    "sorahost": "bin/sorahost.js"
+  },
+  "files": [
+    "bin",
+    "lib",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "test": "node --test"
+  },
+  "dependencies": {
+    "tar": "^7.4.3"
+  }
+}
