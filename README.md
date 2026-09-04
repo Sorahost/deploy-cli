@@ -1,4 +1,4 @@
-# sorahost-cli
+# deploy-cli
 
 SORAHOST（PteWorker）へプロジェクトを公開するためのCLIツールです。
 
